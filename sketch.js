@@ -27,6 +27,9 @@ let minimapCells = []; // Array of DOM elements for minimap cells
 let minimapContainer; // DOM container for minimap
 
 function setup() {
+  // Load default images if needed (add this line)
+  loadDefaultImages();
+
   // Load saved grid size from localStorage
   const storedX = localStorage.getItem('gridSizeX');
   const storedY = localStorage.getItem('gridSizeY');
@@ -86,6 +89,48 @@ function setup() {
   // Initialize DOM-based minimap
   setupDOMMinimap();
 }
+
+function loadDefaultImages() {
+  console.log("Checking for default images...");
+  
+  // Default image URLs - replace these with your actual image URLs
+  const defaultDeadImageURL = 'images/stitched_image_20250320_123824.jpg'; 
+  const defaultLiveImageURL = 'images/stitched_image_simple_7_20250407_141920.jpg';
+  
+  // Check if custom images already exist in localStorage
+  const deadImgExists = localStorage.getItem('deadCellImage');
+  const liveImgExists = localStorage.getItem('liveCellImage');
+  
+  // Only load defaults if no custom images are found
+  if (!deadImgExists) {
+    // Choose one of these approaches:
+    
+    localStorage.setItem('deadCellImage', defaultDeadImageURL);
+    
+    // Update preview if DOM is ready
+    const deadPreview = document.getElementById('deadPreview');
+    if (deadPreview) {
+      deadPreview.style.backgroundImage = `url(${defaultDeadImageBase64})`;
+    }
+    
+    console.log("Default dead cell image loaded");
+  }
+  
+  if (!liveImgExists) {
+    // Choose one of these approaches:
+    
+    localStorage.setItem('liveCellImage', defaultLiveImageURL);
+    
+    // Update preview if DOM is ready
+    const livePreview = document.getElementById('livePreview');
+    if (livePreview) {
+      livePreview.style.backgroundImage = `url(${defaultLiveImageBase64})`;
+    }
+    
+    console.log("Default live cell image loaded");
+  }
+}
+
 
 // Modified setupDOMMinimap function to maintain the same aspect ratio as the game grid
 
