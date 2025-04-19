@@ -110,7 +110,7 @@ function loadDefaultImages() {
     // Update preview if DOM is ready
     const deadPreview = document.getElementById('deadPreview');
     if (deadPreview) {
-      deadPreview.style.backgroundImage = `url(${defaultDeadImageBase64})`;
+      deadPreview.style.backgroundImage = `url(${defaultDeadImageURL})`;
     }
     
     console.log("Default dead cell image loaded");
@@ -124,7 +124,7 @@ function loadDefaultImages() {
     // Update preview if DOM is ready
     const livePreview = document.getElementById('livePreview');
     if (livePreview) {
-      livePreview.style.backgroundImage = `url(${defaultLiveImageBase64})`;
+      livePreview.style.backgroundImage = `url(${defaultLiveImageURL})`;
     }
     
     console.log("Default live cell image loaded");
