@@ -257,16 +257,16 @@
                 <h3>Grid Controls:</h3>
                 <div class="grid-label">
                     <span style="font-size: 13px;">Horizontal Cells:</span>
-                    <span id="gridXVal" style="font-size: 13px;">50</span>
+                    <span id="gridXVal" style="font-size: 13px;">15</span>
                 </div>
-                <input type="range" id="gridX" min="10" max="100" value="50">
+                <input type="range" id="gridX" min="2" max="50" value="15">
 
                 
                 <div class="grid-label">
                     <span style="font-size: 13px;">Vertical Cells:</span>
-                    <span id="gridYVal" style="font-size: 13px;">50</span>
+                    <span id="gridYVal" style="font-size: 13px;">12</span>
                 </div>
-                <input type="range" id="gridY" min="10" max="100" value="50">
+                <input type="range" id="gridY" min="2" max="50" value="12">
                 
                 <button id="applyGridBtn" style="margin-top: 10px; width: 100%;">Apply Grid Changes</button>
             </div>
@@ -321,8 +321,8 @@
         let firstImageRatio = null;
         
         // Default grid size values
-        const defaultGridSizeX = 50;
-        const defaultGridSizeY = 50;
+        const defaultGridSizeX = 15;
+        const defaultGridSizeY = 12;
         
         // Save current grid size to localStorage
         function saveGridSize(x, y) {

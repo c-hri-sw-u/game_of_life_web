@@ -1,8 +1,8 @@
 // sketch.js
 
 // Game Configuration
-let GRID_SIZE_X = 50; // Horizontal grid size
-let GRID_SIZE_Y = 50; // Vertical grid size
+let GRID_SIZE_X = 15; // Horizontal grid size
+let GRID_SIZE_Y = 12; // Vertical grid size
 let cellSizeX, cellSizeY; // Cell size, will be dynamically calculated based on canvas size
 let grid = [];
 let nextGrid = [];
