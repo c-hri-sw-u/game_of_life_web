@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game of Life with Image Cells - p5.js</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pirata+One&family=Special+Gothic+Expanded+One&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            font-family: sans-serif;
+            background-color: #f0f0f0;
+        }
+        
+        /* Settings Panel */
+        .settings-panel {
+            width: 200px;
+            background-color: #ffffff;
+            color: rgb(0, 0, 0);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+            transition: transform 0.3s ease, width 0.3s ease, padding 0.3s ease;
+            z-index: 10;
+            position: relative;
+        }
+        
+        /* Game Area */
+        .game-area {
+            flex: 1;
+            background-color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            transition: margin-left 0.3s ease;
+        }
+        
+        /* Game Grid Area */
+        .grid-container {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+        }
+        
+        #canvas-container {
+            background-color: #ffffff;
+            width: 90%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        /* Bottom Control Bar */
+        .controls-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding-bottom: 10px;
+            background-color: #ffffff;
+        }
+        
+        /* Settings Toggle Button */
+        .toggle-settings {
+            position: absolute;
+            left: 0%;
+            top: 50%;
+            margin-left: 10px;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 60px;
+            background-color: #ffffff;
+            color: rgb(0, 0, 0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            z-index: 100;
+            font-size: 20px;
+            padding: 0;
+            transition: left 0.3s ease;
+            border: 1px solid #e5e5e5;
+        }
+        
+        /* Upload Container Style */
+        .upload-container {
+            margin-bottom: 30px;
+        }
+        
+        /* Grid Controls */
+        .grid-controls {
+            margin-bottom: 30px;
+            padding-top: 10px;
+            border-top: 1px solid #e5e5e5;
+        }
+        
+        h2 {
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 48px;
+            font-family: 'Special Gothic Expanded One';
+        }
+        
+        h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            font-family: 'Special Gothic Expanded One';
+        }
+        
+        .image-preview {
+            width: 100%;
+            height: 150px;
+            border: 1px solid #e5e5e5;
+            margin-top: 10px;
+            background-size: contain;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #f0f0f0;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .note {
+            font-size: 12px;
+            margin-top: 5px;
+            opacity: 0.8;
+        }
+        
+        .error-msg {
+            color: #b73e3e;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+        
+        /* Button Style */
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            background-color: #ffffff;
+            color: black;
+            border: 1px solid #e5e5e5;
+            border-radius: 2px;
+            transition: background-color 0.3s;
+            font-family: inherit;
+        }
+        
+        button:hover {
+            background-color: #e5e5e5;
+        }
+        
+        input[type="file"] {
+            margin-top: 5px;
+            width: 100%;
+        }
+        
+        /* input[type="range"] {
+            width: 100%;
+            margin-top: 5px;
+        } */
+
+        input[type="range"] {
+            width: 100%; /* 确保宽度为100% */
+            margin-top: 10px; /* 增加上边距 */
+            appearance: none; /* 去掉默认样式 */
+            background: #ddd; /* 背景色 */
+            height: 4px; /* 高度 */
+            border-radius: 0px; /* 圆角 */
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none; /* 去掉默认样式 */
+            appearance: none;
+            width: 8px; /* 滑块宽度 */
+            height: 16px; /* 滑块高度 */
+            border-radius: 0; /* 圆形滑块 */
+            background: #000000; /* 滑块颜色 */
+            cursor: pointer; /* 鼠标指针样式 */
+        }
+        
+        .quality-label, .grid-label {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        
+        /* Style when settings panel is hidden */
+        .settings-hidden .settings-panel {
+            transform: translateX(-100%);
+            width: 0;
+            padding: 0;
+            margin: 0;
+        }
+        
+        .settings-hidden .toggle-settings {
+            left: 0;
+        }
+        
+        /* Ensure game area expands when settings panel is hidden */
+        #main-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.3s ease;
+        }
+        
+        /* Minimap styles */
+        .minimap-container {
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        
+        #minimap-canvas-container {
+            width: 100%;
+            height: 150px;
+            /* border: 1px solid #e5e5e5;
+            background-color: #f0f0f0; */
+            position: relative;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <div id="main-container">
+        <!-- Settings Panel -->
+        <div class="settings-panel">
+            <h2>Game of Life</h2>
+            
+            
+            <!-- Grid Settings Section -->
+            <div class="grid-controls">
+                <!-- Minimap - Add this right after the h2 title -->
+                <div class="minimap-container">
+                    <h3>Overview:</h3>
+                    <div id="minimap-canvas-container"></div>
+                </div>
+            
+                <h3>Grid Controls:</h3>
+                <div class="grid-label">
+                    <span style="font-size: 13px;">Horizontal Cells:</span>
+                    <span id="gridXVal" style="font-size: 13px;">50</span>
+                </div>
+                <input type="range" id="gridX" min="10" max="100" value="50">
+
+                
+                <div class="grid-label">
+                    <span style="font-size: 13px;">Vertical Cells:</span>
+                    <span id="gridYVal" style="font-size: 13px;">50</span>
+                </div>
+                <input type="range" id="gridY" min="10" max="100" value="50">
+                
+                <button id="applyGridBtn" style="margin-top: 10px; width: 100%;">Apply Grid Changes</button>
+            </div>
+            
+            <div class="upload-container">
+                <h3>Dead Cell Image:</h3>
+                <input type="file" id="deadCellImage" accept="image/*">
+                <div id="deadPreview" class="image-preview"></div>
+                <div class="note">Upload this image first</div>
+                <div class="quality-label">
+                    <span style="font-size: 13px;">Image Quality:</span>
+                    <span id="deadQualityVal" style="font-size: 13px;">70%</span>
+                </div>
+                <input type="range" id="deadQuality" min="10" max="100" value="70">
+            </div>
+            
+            <div class="upload-container">
+                <h3>Live Cell Image:</h3>
+                <input type="file" id="liveCellImage" accept="image/*">
+                <div id="livePreview" class="image-preview"></div>
+                <div class="note">Upload this image next</div>
+                <div id="ratio-error" class="error-msg">Image aspect ratio doesn't match!</div>
+                <div class="quality-label">
+                    <span style="font-size: 13px;">Image Quality:</span>
+                    <span id="liveQualityVal" style="font-size: 13px;">70%</span>
+                </div>
+                <input type="range" id="liveQuality" min="10" max="100" value="70">
+            </div>
+        </div>
+        
+        <!-- Game Area -->
+        <div class="game-area">
+            <!-- Toggle Button -->
+            <button class="toggle-settings">&lt;</button>
+            
+            <!-- Game Grid Area -->
+            <div class="grid-container">
+                <div id="canvas-container"></div>
+            </div>
+            
+            <!-- Bottom Control Bar -->
+            <div class="controls-bar">
+                <button id="startBtn">Start/Pause</button>
+                <button id="resetBtn">Reset</button>
+                <button id="randomBtn">Random</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Variable to store aspect ratio of first image
+        let firstImageRatio = null;
+        
+        // Default grid size values
+        const defaultGridSizeX = 50;
+        const defaultGridSizeY = 50;
+        
+        // Save current grid size to localStorage
+        function saveGridSize(x, y) {
+            localStorage.setItem('gridSizeX', x);
+            localStorage.setItem('gridSizeY', y);
+        }
+        
+        // Load grid size from localStorage
+        function loadGridSize() {
+            const x = parseInt(localStorage.getItem('gridSizeX')) || defaultGridSizeX;
+            const y = parseInt(localStorage.getItem('gridSizeY')) || defaultGridSizeY;
+            return { x, y };
+        }
+        
+        // Apply grid size changes
+        function applyGridChanges() {
+            const gridX = parseInt(document.getElementById('gridX').value);
+            const gridY = parseInt(document.getElementById('gridY').value);
+            
+            // Save settings
+            localStorage.setItem('gridSizeX', gridX);
+            localStorage.setItem('gridSizeY', gridY);
+            
+            // Update global variables for sketch.js
+            window.GRID_SIZE_X = gridX;
+            window.GRID_SIZE_Y = gridY;
+            
+            console.log("Applying grid changes: X=" + gridX + ", Y=" + gridY);
+            
+            // Call reset function in sketch.js
+            if (typeof window.resetGrid === 'function') {
+                try {
+                    window.resetGrid();
+                    
+                    // Force grid reinitialization
+                    if (typeof window.initializeGrid === 'function') {
+                        window.initializeGrid();
+                    }
+                    
+                    // Resize canvas
+                    if (typeof window.windowResized === 'function') {
+                        window.windowResized();
+                    }
+                    
+                    console.log("Grid successfully reset and adjusted");
+                } catch(e) {
+                    console.error("Error resetting grid:", e);
+                }
+            } else {
+                console.error("Cannot find resetGrid function - ensure sketch.js is properly loaded");
+                alert("Cannot apply grid changes, please refresh the page and try again");
+            }
+        }
+        
+        // Process and save image
+        function processAndSaveImage(imageFile, previewElementId, storageKey, qualitySlider, onSuccess) {
+            if (!imageFile) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                // Create image object to get dimensions
+                const img = new Image();
+                img.onload = function() {
+                    // Calculate new dimensions while maintaining aspect ratio
+                    const maxDimension = 800; // Set maximum size
+                    let width = img.width;
+                    let height = img.height;
+                    let aspectRatio = width / height;
+                    
+                    if (width > height) {
+                        if (width > maxDimension) {
+                            height = Math.round(height * (maxDimension / width));
+                            width = maxDimension;
+                        }
+                    } else {
+                        if (height > maxDimension) {
+                            width = Math.round(width * (maxDimension / height));
+                            height = maxDimension;
+                        }
+                    }
+                    
+                    // Create canvas for resizing
+                    const canvas = document.createElement('canvas');
+                    canvas.width = width;
+                    canvas.height = height;
+                    
+                    // Draw resized image on canvas
+                    const ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, width, height);
+                    
+                    // Get quality setting from slider (convert to 0-1 range)
+                    const quality = parseInt(document.getElementById(qualitySlider).value) / 100;
+                    
+                    // Get compressed image data
+                    const dataUrl = canvas.toDataURL('image/jpeg', quality);
+                    
+                    // Try to save to localStorage
+                    try {
+                        localStorage.setItem(storageKey, dataUrl);
+                        
+                        // Update preview
+                        document.getElementById(previewElementId).style.backgroundImage = `url(${dataUrl})`;
+                        
+                        // Call success callback and pass aspect ratio
+                        if (onSuccess) {
+                            onSuccess(aspectRatio);
+                        }
+                        
+                        // Force reload images in p5.js
+                        if (window.tryLoadCustomImages) {
+                            setTimeout(() => {
+                                window.tryLoadCustomImages();
+                                // Trigger window redraw
+                                if (window.windowResized) {
+                                    window.windowResized();
+                                }
+                            }, 100);
+                        }
+                    } catch (e) {
+                        console.error("Storage error:", e);
+                        alert("Image is still too large. Try reducing quality or using a smaller image.");
+                    }
+                };
+                img.src = event.target.result;
+            };
+            reader.readAsDataURL(imageFile);
+        }
+        
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', function() {
+            // Toggle settings panel display/hide
+            document.querySelector('.toggle-settings').addEventListener('click', function() {
+                document.body.classList.toggle('settings-hidden');
+                this.textContent = document.body.classList.contains('settings-hidden') ? '>' : '<';
+                
+                // When layout changes, delay canvas resize to ensure container dimensions are updated
+                setTimeout(() => {
+                    if (window.windowResized) {
+                        window.windowResized();
+                    }
+                }, 310); // Set slightly longer than transition time
+            });
+            
+            // Apply grid button
+            document.getElementById('applyGridBtn').addEventListener('click', applyGridChanges);
+            
+            // Initialize grid slider display
+            const storedGridSize = loadGridSize();
+            document.getElementById('gridX').value = storedGridSize.x;
+            document.getElementById('gridXVal').textContent = storedGridSize.x;
+            document.getElementById('gridY').value = storedGridSize.y;
+            document.getElementById('gridYVal').textContent = storedGridSize.y;
+            
+            // Set global variables for sketch.js
+            window.GRID_SIZE_X = storedGridSize.x;
+            window.GRID_SIZE_Y = storedGridSize.y;
+            
+            // Update grid X slider value display
+            document.getElementById('gridX').addEventListener('input', function() {
+                document.getElementById('gridXVal').textContent = this.value;
+            });
+            
+            // Update grid Y slider value display
+            document.getElementById('gridY').addEventListener('input', function() {
+                document.getElementById('gridYVal').textContent = this.value;
+            });
+            
+            // Update image quality slider value display
+            document.getElementById('deadQuality').addEventListener('input', function() {
+                document.getElementById('deadQualityVal').textContent = this.value + '%';
+            });
+            
+            document.getElementById('liveQuality').addEventListener('input', function() {
+                document.getElementById('liveQualityVal').textContent = this.value + '%';
+            });
+            
+            // Expose tryLoadCustomImages function globally
+            setTimeout(() => {
+                if (window.tryLoadCustomImages) {
+                    // Expose function to window object
+                    window.reloadImages = function() {
+                        window.tryLoadCustomImages();
+                        if (window.windowResized) {
+                            window.windowResized();
+                        }
+                    };
+                }
+            }, 1000); // Give sketch.js enough time to load
+            
+            // Dead cell image upload
+            document.getElementById('deadCellImage').addEventListener('change', function(e) {
+                console.log("Dead cell image upload event triggered");
+                const file = e.target.files[0];
+                if (file) {
+                    processAndSaveImage(
+                        file, 
+                        'deadPreview', 
+                        'deadCellImage', 
+                        'deadQuality',
+                        function(ratio) {
+                            // Save first image aspect ratio
+                            firstImageRatio = ratio;
+                            console.log("Dead cell image processing complete, ratio:", ratio);
+                        }
+                    );
+                }
+            });
+            
+            // Live cell image upload
+            document.getElementById('liveCellImage').addEventListener('change', function(e) {
+                console.log("Live cell image upload event triggered");
+                const file = e.target.files[0];
+                if (file) {
+                    processAndSaveImage(
+                        file, 
+                        'livePreview', 
+                        'liveCellImage', 
+                        'liveQuality',
+                        function(ratio) {
+                            // If first image exists, check ratio
+                            if (firstImageRatio !== null) {
+                                // Allow 5% error margin
+                                const tolerance = 0.05;
+                                const ratiosDiff = Math.abs(firstImageRatio - ratio);
+                                
+                                if (ratiosDiff > firstImageRatio * tolerance) {
+                                    // Show ratio mismatch error
+                                    document.getElementById('ratio-error').style.display = 'block';
+                                } else {
+                                    // Hide error message
+                                    document.getElementById('ratio-error').style.display = 'none';
+                                }
+                            }
+                            console.log("Live cell image processing complete, ratio:", ratio);
+                        }
+                    );
+                }
+            });
+            
+            // Check if images already exist
+            const deadImgData = localStorage.getItem('deadCellImage');
+            if (deadImgData) {
+                document.getElementById('deadPreview').style.backgroundImage = `url(${deadImgData})`;
+                
+                // Get first image ratio
+                const img = new Image();
+                img.onload = function() {
+                    firstImageRatio = img.width / img.height;
+                };
+                img.src = deadImgData;
+            }
+            
+            const liveImgData = localStorage.getItem('liveCellImage');
+            if (liveImgData) {
+                document.getElementById('livePreview').style.backgroundImage = `url(${liveImgData})`;
+            }
+        });
+    </script>
+    
+    <!-- Load main script -->
+    <script src="sketch.js"></script>
+</body>
+</html>
